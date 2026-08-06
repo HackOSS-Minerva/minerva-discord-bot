@@ -179,14 +179,15 @@ _CATEGORIES: tuple[CategorySpec, ...] = (
 
 def _role_overwrites(
     guild: discord.Guild, allow: tuple[str, ...] | None
-) -> dict[discord.Role | discord.Member, discord.PermissionOverwrite] | None:
+) -> dict[discord.Role | discord.Member, discord.PermissionOverwrite]:
     """Build the category overwrites for a privacy policy.
 
-    ``None`` means public (no overwrites). A non-None ``allow`` hides the
-    category from @everyone and grants view to each listed role.
+    A public category returns an empty dict (discord.py requires a real dict
+    or no argument; passing ``None`` raises ``TypeError``). A non-None
+    ``allow`` hides the category from @everyone and grants view to each role.
     """
     if allow is None:
-        return None
+        return {}
 
     overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] = {
         guild.default_role: discord.PermissionOverwrite(view_channel=False)

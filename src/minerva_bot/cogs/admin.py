@@ -131,8 +131,10 @@ class AdminCog(commands.Cog):
         # ID/name resolution is needed.
         resolved_category = category
 
-        # Build permission overwrites for private channels
-        overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] | None = None
+        # Build permission overwrites for private channels. discord.py needs a
+        # real dict (or no arg) here; an empty dict means "no overwrites" and
+        # passing None would raise TypeError.
+        overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] = {}
         if private:
             overwrites = {guild.default_role: discord.PermissionOverwrite(view_channel=False)}
 
@@ -215,7 +217,8 @@ class AdminCog(commands.Cog):
     ) -> None:
         assert interaction.guild is not None
 
-        overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] | None = None
+        # discord.py needs a real dict (or no arg) here, not None.
+        overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] = {}
         if private:
             overwrites = {
                 interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False)
