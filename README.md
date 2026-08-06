@@ -21,7 +21,7 @@ When a new member joins, the bot greets them in the channel with ID `15347420963
 > Hello @member! Welcome to [server name]!
 > Check out the rules to get started and assign yourself a role!
 
-The bot must have permission to send messages in that channel, and the **Members** intent must be enabled (see setup above).
+The bot must have permission to send messages in that channel, **and** the **Members** intent must be enabled both here and in the Discord Developer Portal (see setup above). Set `MEMBERS_INTENT=false` in `.env` to disable welcome messages; the bot will run but `on_member_join` won't fire.
 
 ## Requirements
 
@@ -33,7 +33,7 @@ The bot must have permission to send messages in that channel, and the **Members
 
 1. Create an application, then add a **Bot** to it.
 2. Under **Bot**, copy the token into `.env` (see below). Keep this secret.
-3. Enable the privileged **Members** intent under **Bot** — it is required so the bot fires `on_member_join` and can send welcome messages.
+3. Enable the privileged **Members** intent under **Bot** — it is required so the bot fires `on_member_join` and can send welcome messages. If you skip this, Discord will refuse the bot's connection with `PrivilegedIntentsRequired`; set `MEMBERS_INTENT=false` in `.env` to run without the intent (and without welcome messages).
 4. Under **OAuth2 -> URL Generator**, select the `bot` and `applications.commands` scopes, and at minimum the **Manage Roles** and **Manage Channels** bot permissions. Use the generated URL to invite the bot to a server.
 5. **Role hierarchy note:** Discord only lets a bot manage roles *below* its own highest role. Make sure the bot's role sits above any roles you want it to manage.
 

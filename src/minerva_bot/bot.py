@@ -31,9 +31,12 @@ class MinervaBot(commands.Bot):
 
     def __init__(self, settings: Settings) -> None:
         intents = discord.Intents.default()
-        # Privileged intent: required for `on_member_join` to fire. Must be
-        # enabled in the Discord Developer Portal (Application -> Bot).
-        intents.members = True
+        # Privileged intent: required for `on_member_join` (welcome messages).
+        # It must ALSO be enabled in the Discord Developer Portal (Application
+        # -> Bot), or Discord refuses the connection. Gate it behind a setting
+        # so the bot can still start without it (just no welcome messages).
+        if settings.members_intent:
+            intents.members = True
         super().__init__(command_prefix=commands.when_mentioned, intents=intents)
 
         self.settings = settings

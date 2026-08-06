@@ -20,9 +20,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    discord_token: str = Field(
-        ..., description="Bot token from the Discord developer portal"
-    )
+    discord_token: str = Field(..., description="Bot token from the Discord developer portal")
 
     dev_guild_id: int | None = Field(
         default=None,
@@ -35,6 +33,16 @@ class Settings(BaseSettings):
     )
 
     log_level: str = Field(default="INFO")
+
+    members_intent: bool = Field(
+        default=True,
+        description=(
+            "Request the privileged 'Members' intent, required for welcome "
+            "messages via on_member_join. It must also be enabled in the Discord "
+            "Developer Portal, otherwise the bot cannot start. Set false to run "
+            "without welcome messages."
+        ),
+    )
 
 
 def get_settings() -> Settings:
