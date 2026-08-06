@@ -13,6 +13,7 @@ All commands are admin-only. Non-admins won't see them in Discord's UI, and a ru
 | `/create-role name [color] [mentionable] [hoist]` | Creates a role. Defaults when omitted: `color` white, `mentionable` and `hoist` yes. `color` accepts hex like `#5865F2`. |
 | `/create-channel name type [category] [topic] [private]` | Creates a channel. `type` (Text, Announcement, Voice, Stage, Forum) and `category` are chosen from dropdown menus. If `private` is set, only administrators can view it. |
 | `/create-category name [private]` | Creates a channel category. If `private` is set, only administrators can view it. |
+| `/use-template` | Stands up the whole server layout from the built-in template (all roles, categories and channels at once). Idempotent: existing roles/categories are reused. |
 
 ## Welcome messages
 
@@ -22,6 +23,25 @@ When a new member joins, the bot greets them in the channel with ID `15347420963
 > Check out the rules to get started and assign yourself a role!
 
 The bot must have permission to send messages in that channel, **and** the **Members** intent must be enabled both here and in the Discord Developer Portal (see setup above). Set `MEMBERS_INTENT=false` in `.env` to disable welcome messages; the bot will run but `on_member_join` won't fire.
+
+## Server template (`/use-template`)
+
+Runs once to create the full layout. It is idempotent — a role or category with the same name is reused rather than recreated.
+
+**Roles (highest to lowest):** `admin` (Administrator), `lead` (full moderator powers), `workshop lead`, `judge`, `mentor`, `participant` (lowest).
+
+**Categories & channels** (all text unless noted):
+
+| Category | Privacy | Channels |
+|---|---|---|
+| `info desk` | public | announcements, rules, welcome, role-request, resources, faq |
+| `workshops` | participants & above | resources |
+| `help desk` | participants & above | team-formation (forum) |
+| `general` | participants & above | introductions, talk-to-organizers, general, linkedin, github, devpost, off-topic |
+| `mentors` | participants & above | introductions, ask-mentors |
+| `organizers` | leads & above ONLY | general, workshops, mentors, judges, verification, logs |
+
+Private categories are hidden from `@everyone` and granted to the listed roles. Note: Discord disallows spaces in channel names, so the help-desk forum is `team-formation`.
 
 ## Requirements
 
