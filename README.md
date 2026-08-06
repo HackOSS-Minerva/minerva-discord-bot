@@ -10,9 +10,18 @@ All commands are admin-only. Non-admins won't see them in Discord's UI, and a ru
 
 | Command | Description |
 |---|---|
-| `/create-role name [color] [mentionable] [hoist]` | Creates a role. `color` accepts hex like `#5865F2`. |
-| `/create-channel name type [category] [topic] [private]` | Creates a channel. `type` is one of Text, Voice, Announcement, Forum, Stage. If `private` is set, only administrators can view it. |
-| `/create-category name` | Creates a channel category. |
+| `/create-role name [color] [mentionable] [hoist]` | Creates a role. Defaults when omitted: `color` white, `mentionable` and `hoist` yes. `color` accepts hex like `#5865F2`. |
+| `/create-channel name type [category] [topic] [private]` | Creates a channel. `type` (Text, Announcement, Voice, Stage, Forum) and `category` are chosen from dropdown menus. If `private` is set, only administrators can view it. |
+| `/create-category name [private]` | Creates a channel category. If `private` is set, only administrators can view it. |
+
+## Welcome messages
+
+When a new member joins, the bot greets them in the channel with ID `1534742096307552306` (hardcoded for now):
+
+> Hello @member! Welcome to [server name]!
+> Check out the rules to get started and assign yourself a role!
+
+The bot must have permission to send messages in that channel, and the **Members** intent must be enabled (see setup above).
 
 ## Requirements
 
@@ -24,7 +33,7 @@ All commands are admin-only. Non-admins won't see them in Discord's UI, and a ru
 
 1. Create an application, then add a **Bot** to it.
 2. Under **Bot**, copy the token into `.env` (see below). Keep this secret.
-3. No privileged intents are required (this bot only uses slash commands).
+3. Enable the privileged **Members** intent under **Bot** — it is required so the bot fires `on_member_join` and can send welcome messages.
 4. Under **OAuth2 -> URL Generator**, select the `bot` and `applications.commands` scopes, and at minimum the **Manage Roles** and **Manage Channels** bot permissions. Use the generated URL to invite the bot to a server.
 5. **Role hierarchy note:** Discord only lets a bot manage roles *below* its own highest role. Make sure the bot's role sits above any roles you want it to manage.
 

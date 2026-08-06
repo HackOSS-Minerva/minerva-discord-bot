@@ -26,6 +26,8 @@ if TYPE_CHECKING:
     from minerva_bot.bot import MinervaBot
 
 logger = logging.getLogger(__name__)
+
+
 class AdminCog(commands.Cog):
     """Slash commands for guild role and channel provisioning."""
 
@@ -35,14 +37,12 @@ class AdminCog(commands.Cog):
     # ------------------------------------------------------------------
     # /create-role
     # ------------------------------------------------------------------
-    @app_commands.command(
-        name="create-role", description="Create a new role in this server."
-    )
+    @app_commands.command(name="create-role", description="Create a new role in this server.")
     @app_commands.describe(
         name="Name of the new role",
-        color="Hex color, e.g. #5865F2 (optional)",
-        mentionable="Whether the role can be @mentioned by everyone",
-        hoist="Whether the role is displayed separately in the member list",
+        color="Hex color, e.g. #5865F2 (optional, defaults to white)",
+        mentionable="Whether the role can be @mentioned by everyone (default: yes)",
+        hoist="Whether the role is shown separately in the member list (default: yes)",
     )
     @app_commands.default_permissions(administrator=True)
     @app_commands.guild_only()
@@ -53,12 +53,12 @@ class AdminCog(commands.Cog):
         interaction: discord.Interaction,
         name: str,
         color: str | None = None,
-        mentionable: bool = False,
-        hoist: bool = False,
+        mentionable: bool = True,
+        hoist: bool = True,
     ) -> None:
         assert interaction.guild is not None  # enforced by guild_only()
 
-        parsed_color = discord.Color.default()
+        parsed_color = discord.Color.from_rgb(255, 255, 255)
         if color is not None:
             try:
                 parsed_color = discord.Color.from_str(color)
@@ -88,18 +88,26 @@ class AdminCog(commands.Cog):
             f"Created role {role.mention}.",
             ephemeral=True,
         )
+
     # ------------------------------------------------------------------
     # /create-channel
     # ------------------------------------------------------------------
-    @app_commands.command(
-        name="create-channel", description="Create a new channel in this server."
-    )
+    @app_commands.command(name="create-channel", description="Create a new channel in this server.")
     @app_commands.describe(
         name="Name of the new channel",
         type="Channel type",
-        category="Name or ID of the category to place this channel under (optional)",
+        category="Category to place this channel under (optional)",
         topic="Topic text for the channel (optional)",
         private="If True, only administrators can see this channel",
+    )
+    @app_commands.choices(
+        type=[
+            app_commands.Choice(name="Text", value="text"),
+            app_commands.Choice(name="Announcement", value="announcement"),
+            app_commands.Choice(name="Voice", value="voice"),
+            app_commands.Choice(name="Stage", value="stage"),
+            app_commands.Choice(name="Forum", value="forum"),
+        ]
     )
     @app_commands.default_permissions(administrator=True)
     @app_commands.guild_only()
@@ -110,7 +118,7 @@ class AdminCog(commands.Cog):
         interaction: discord.Interaction,
         name: str,
         type: str,
-        category: str | None = None,
+        category: discord.CategoryChannel | None = None,
         topic: str | None = None,
         private: bool = False,
     ) -> None:
@@ -119,15 +127,12 @@ class AdminCog(commands.Cog):
         guild: discord.Guild = interaction.guild
         reason = f"Created via /create-channel by {interaction.user}"
 
-        # Resolve category
-        resolved_category: discord.CategoryChannel | None = None
-        if category is not None:
-            resolved_category = _resolve_category(guild, category)
+        # Category comes straight from the Discord UI dropdown; no manual
+        # ID/name resolution is needed.
+        resolved_category = category
 
         # Build permission overwrites for private channels
-        overwrites: (
-            dict[discord.Role | discord.Member, discord.PermissionOverwrite] | None
-        ) = None
+        overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] | None = None
         if private:
             overwrites = {guild.default_role: discord.PermissionOverwrite(view_channel=False)}
 
@@ -175,9 +180,7 @@ class AdminCog(commands.Cog):
                     reason=reason,
                 )
             case _:
-                await interaction.response.send_message(
-                    "Unsupported channel type.", ephemeral=True
-                )
+                await interaction.response.send_message("Unsupported channel type.", ephemeral=True)
                 return
 
         await self.bot.store.record_action(
@@ -199,18 +202,28 @@ class AdminCog(commands.Cog):
         name="create-category",
         description="Create a new channel category in this server.",
     )
-    @app_commands.describe(name="Name of the new category")
+    @app_commands.describe(
+        name="Name of the new category",
+        private="If True, only administrators can view this category and its channels",
+    )
     @app_commands.default_permissions(administrator=True)
     @app_commands.guild_only()
     @require_admin()
     @app_commands.checks.bot_has_permissions(manage_channels=True)
     async def create_category(
-        self, interaction: discord.Interaction, name: str
+        self, interaction: discord.Interaction, name: str, private: bool = False
     ) -> None:
         assert interaction.guild is not None
 
+        overwrites: dict[discord.Role | discord.Member, discord.PermissionOverwrite] | None = None
+        if private:
+            overwrites = {
+                interaction.guild.default_role: discord.PermissionOverwrite(view_channel=False)
+            }
+
         category = await interaction.guild.create_category(
             name=name,
+            overwrites=overwrites,  # type: ignore[arg-type]
             reason=f"Created via /create-category by {interaction.user}",
         )
 
@@ -226,30 +239,5 @@ class AdminCog(commands.Cog):
         )
 
 
-def _resolve_category(
-    guild: discord.Guild, identifier: str
-) -> discord.CategoryChannel | None:
-    """Find a category channel by ID or name. Returns None if not found."""
-    # Try by ID first
-    try:
-        cat_id = int(identifier)
-        channel = guild.get_channel(cat_id)
-        if isinstance(channel, discord.CategoryChannel):
-            return channel
-    except ValueError:
-        pass
-
-    # Try by name (case-insensitive)
-    for channel in guild.channels:
-        if not isinstance(channel, discord.CategoryChannel):
-            continue
-        if channel.name.lower() == identifier.lower():
-            return channel
-
-    return None
-
-
 async def setup(bot: MinervaBot) -> None:
     await bot.add_cog(AdminCog(bot))
-
-

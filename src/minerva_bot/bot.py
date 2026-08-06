@@ -16,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 _INITIAL_EXTENSIONS = ("minerva_bot.cogs.admin",)
 
+# Hardcoded ID of the channel where new members are greeted.
+# TODO: move to per-guild `guild_settings` once it becomes configurable.
+_WELCOME_CHANNEL_ID = 1534742096307552306
+
 
 class MinervaBot(commands.Bot):
     """The bot instance.
@@ -27,6 +31,9 @@ class MinervaBot(commands.Bot):
 
     def __init__(self, settings: Settings) -> None:
         intents = discord.Intents.default()
+        # Privileged intent: required for `on_member_join` to fire. Must be
+        # enabled in the Discord Developer Portal (Application -> Bot).
+        intents.members = True
         super().__init__(command_prefix=commands.when_mentioned, intents=intents)
 
         self.settings = settings
@@ -57,6 +64,34 @@ class MinervaBot(commands.Bot):
             self.user.id,
             len(self.guilds),
         )
+
+    async def on_member_join(self, member: discord.Member) -> None:
+        """Greet a newly joined member in the configured welcome channel.
+
+        The channel ID is hardcoded behind ``_WELCOME_CHANNEL_ID`` for now.
+        """
+        guild = member.guild
+        channel = guild.get_channel(_WELCOME_CHANNEL_ID)
+        if not isinstance(channel, discord.TextChannel):
+            logger.warning(
+                "Welcome channel %s not found or not a text channel in guild %s",
+                _WELCOME_CHANNEL_ID,
+                guild.id,
+            )
+            return
+
+        try:
+            await channel.send(
+                f"Hello {member.mention}! Welcome to {guild.name}!\n"
+                "Check out the rules to get started and assign yourself a role!"
+            )
+        except discord.Forbidden:
+            logger.warning(
+                "Missing permissions to send welcome message in channel %s",
+                channel.id,
+            )
+        except discord.HTTPException:
+            logger.exception("Failed to send welcome message in channel %s", channel.id)
 
     async def _on_app_command_error(
         self,
