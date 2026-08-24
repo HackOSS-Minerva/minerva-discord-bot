@@ -20,6 +20,8 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9
+        with:
+          version: "latest"
 
       - name: Install dependencies
         run: uv sync --locked
@@ -37,6 +39,8 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9
+        with:
+          version: "latest"
 
       - name: Install dependencies
         run: uv sync --locked
@@ -54,6 +58,8 @@ jobs:
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v9
+        with:
+          version: "latest"
 
       - name: Install dependencies
         run: uv sync --locked
