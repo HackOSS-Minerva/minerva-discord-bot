@@ -85,9 +85,7 @@ class GuildStore:
                 default_category_id=row["default_category_id"],
             )
 
-    async def set_default_category(
-        self, guild_id: int, category_id: int | None
-    ) -> None:
+    async def set_default_category(self, guild_id: int, category_id: int | None) -> None:
         async with self._connect() as db:
             await db.execute(
                 """
