@@ -40,9 +40,7 @@ def require_admin() -> Callable[[_T], _T]:
             raise NotServerAdmin("Could not resolve your server membership.")
 
         if not member.guild_permissions.administrator:
-            raise NotServerAdmin(
-                "You must be a server administrator to use this command."
-            )
+            raise NotServerAdmin("You must be a server administrator to use this command.")
 
         return True
 
