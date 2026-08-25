@@ -44,6 +44,11 @@ class Settings(BaseSettings):
         ),
     )
 
+    log_channel_id: int | None = Field(
+        default=None,
+        description="Discord channel ID to forward WARNING+ log records to.",
+    )
+
 
 def get_settings() -> Settings:
     """Return a freshly loaded Settings instance."""

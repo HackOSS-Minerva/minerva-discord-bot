@@ -79,15 +79,6 @@ uv run pytest               # tests
 uv build                    # build sdist + wheel
 ```
 
-## Running with Docker
-
-```bash
-docker build -t minerva-bot .
-docker run --rm -it \
-  -e DISCORD_TOKEN=your-token-here \
-  -v minerva-bot-data:/app/data \
-  minerva-bot
-```
 
 ## Multi-tenancy & permissions
 
@@ -112,7 +103,6 @@ src/minerva_bot/
 tests/
   test_storage.py
 .github/workflows/ci.yml
-Dockerfile
 ```
 
 
