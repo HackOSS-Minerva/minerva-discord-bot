@@ -10,6 +10,7 @@ from discord.ext import commands
 
 from minerva_bot.checks import NotServerAdmin
 from minerva_bot.config import Settings
+from minerva_bot.logging_config import attach_discord_handler
 from minerva_bot.storage import GuildStore
 
 logger = logging.getLogger(__name__)
@@ -67,6 +68,19 @@ class MinervaBot(commands.Bot):
             self.user.id,
             len(self.guilds),
         )
+
+        if self.settings.log_channel_id is not None:
+            channel = self.get_channel(self.settings.log_channel_id)
+            if isinstance(channel, discord.TextChannel):
+                attach_discord_handler(channel)
+                logger.info("Discord log handler attached to channel #%s", channel.name)
+                # logger.warning("testing logger connection to channel") # test connection
+            else:
+                logger.warning(
+                    "LOG_CHANNEL_ID %s not found or not a text channel — "
+                    "Discord log forwarding disabled",
+                    self.settings.log_channel_id,
+                )
 
     async def on_member_join(self, member: discord.Member) -> None:
         """Greet a newly joined member in the configured welcome channel.
