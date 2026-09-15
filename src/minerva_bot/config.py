@@ -49,6 +49,26 @@ class Settings(BaseSettings):
         description="Discord channel ID to forward WARNING+ log records to.",
     )
 
+    google_calendar_api_key: str | None = Field(
+        default=None,
+        description="Google Cloud API key with Calendar API enabled.",
+    )
+
+    google_calendar_id: str | None = Field(
+        default=None,
+        description="Google Calendar ID ",
+    )
+
+    announcement_channel_id: int | None = Field(
+        default=None,
+        description="Discord announcement channel id (dev mode)",
+    )
+
+    announcement_role_id: int | None = Field(
+        default=None,
+        description="Discord role ID to mention in event announcements.",
+    )
+
 
 def get_settings() -> Settings:
     """Return a freshly loaded Settings instance."""

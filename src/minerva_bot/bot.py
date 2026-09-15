@@ -15,7 +15,11 @@ from minerva_bot.storage import GuildStore
 
 logger = logging.getLogger(__name__)
 
-_INITIAL_EXTENSIONS = ("minerva_bot.cogs.admin", "minerva_bot.cogs.template")
+_INITIAL_EXTENSIONS = (
+    "minerva_bot.cogs.admin",
+    "minerva_bot.cogs.template",
+    "minerva_bot.cogs.calendar",
+)
 
 # Hardcoded ID of the channel where new members are greeted.
 # TODO: move to per-guild `guild_settings` once it becomes configurable.
