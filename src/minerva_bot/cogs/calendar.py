@@ -7,6 +7,7 @@ import logging
 import re
 from datetime import UTC, datetime, timedelta
 from urllib.parse import quote
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import aiohttp
 import discord
@@ -24,8 +25,8 @@ _WINDOW_MINUTES = 2
 _CALENDAR_API_BASE = "https://www.googleapis.com/calendar/v3/calendars/{calendar_id}/events"
 
 
-def _format_time_range(start_str: str, end_str: str) -> str:
-    """Return a formatted time range string, e.g. '2:00 PM - 3:30 PM'."""
+def _format_time_range(start_str: str, end_str: str, timezone_name: str = "") -> str:
+    """Return a formatted time range string, e.g. '2:00 PM - 3:30 PM (America/Los_Angeles)'."""
     if not start_str or not end_str:
         return ""
     try:
@@ -33,7 +34,22 @@ def _format_time_range(start_str: str, end_str: str) -> str:
         end_dt = datetime.fromisoformat(end_str)
     except ValueError:
         return ""
-    return f"{start_dt.strftime('%-I:%M %p')} - {end_dt.strftime('%-I:%M %p')}"
+    if timezone_name:
+        try:
+            tz = ZoneInfo(timezone_name)
+            start_dt = start_dt.astimezone(tz)
+            end_dt = end_dt.astimezone(tz)
+            tz_str = f" ({start_dt.strftime('%Z')})"
+        except ZoneInfoNotFoundError:
+            tz_str = f" ({timezone_name})"
+    else:
+        offset = start_dt.utcoffset()
+        if offset is not None:
+            total_hours = int(offset.total_seconds()) // 3600
+            tz_str = f" (UTC{'+' if total_hours >= 0 else ''}{total_hours})"
+        else:
+            tz_str = ""
+    return f"{start_dt.strftime('%-I:%M %p')} - {end_dt.strftime('%-I:%M %p')}{tz_str}"
 
 
 def _clean_html(text: str) -> str:
@@ -51,7 +67,7 @@ class CalendarCog(commands.Cog):
         self._announced: set[str] = set()
         self.check_events.start()
 
-    def cog_unload(self) -> None:
+    async def cog_unload(self) -> None:
         self.check_events.cancel()
 
     @tasks.loop(minutes=1)
@@ -109,7 +125,8 @@ class CalendarCog(commands.Cog):
             end_raw = item.get("end", {})
             start_str = start_raw.get("dateTime") or start_raw.get("date", "")
             end_str = end_raw.get("dateTime") or end_raw.get("date", "")
-            time_range = _format_time_range(start_str, end_str)
+            timezone_name = start_raw.get("timeZone", "")
+            time_range = _format_time_range(start_str, end_str, timezone_name)
 
             role_mention = (
                 f"<@&{settings.announcement_role_id}>" if settings.announcement_role_id else ""
