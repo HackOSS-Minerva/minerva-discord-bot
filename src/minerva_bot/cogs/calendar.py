@@ -119,7 +119,7 @@ class CalendarCog(commands.Cog):
                 lines.append(role_mention)
             lines.append(f"🔔 **{title}** starts in {_ANNOUNCE_BEFORE_MINUTES} minutes! 🔔")
             if time_range:
-                lines.append(f"🕐 {time_range}")
+                lines.append(f"🕐 {time_range} PST")
             if location:
                 lines.append(f"📍 {location}")
             if description:
